@@ -7,6 +7,5 @@ import org.pojomapper.copier.Source;
  */
 public interface PerPropertyCopyOperation {
 
-    boolean copy(Source source, Object target,
-                 String fromProp, String toProp);
+	boolean copy(Source source, Object target, String fromProp, String toProp);
 }
