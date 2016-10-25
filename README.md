@@ -22,7 +22,9 @@ SomeTargetPojo result = PojoMapper.copyTo(new SomeTargetPojo())
 		.skipNulls(true)
 	.copy();
 
-...see unit tests for more examples 
+... see unit tests for more code examples 
+
+```
 
 ## Contributing
 
