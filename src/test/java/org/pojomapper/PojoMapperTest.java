@@ -84,13 +84,7 @@ public class PojoMapperTest {
         mapper.put("notMatchedProp1", "notMatchedProp3");
         mapper.put("notMatchedProp4", "notMatchedProp2");
         mapper.put("nestedProp.prop1", "notMatchedProp5");
-        Dto dto = PojoMapper.copyTo(new Dto()).from(domain).rewrite(rewrite).mapper("prop1", "prop2").ignore("ignorableProperty").mapper(mapper).copy();
-        
-        SomeTargetPojo resuelt = PojoMapper.copyTo(new SomeTargetPojo())
-        		.from(firstSource)
-        		.ignore("ignorableProperty")
-        		.
-        		.mapper(mapper).copy();
+        Dto dto = PojoMapper.copyTo(new Dto()).from(domain).mapper(mapper).copy();
 
         Assert.assertThat(dto.getNotMatchedProp3(), equalTo(domain.getNotMatchedProp1()));
         Assert.assertThat(dto.getNotMatchedProp4(), equalTo(domain.getNotMatchedProp2()));
