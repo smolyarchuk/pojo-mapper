@@ -23,31 +23,22 @@ public class PojoMapperTest {
     @Test
     public void copyDomainToDto() {
         Domain domain = setRandomPropertyValues(new Domain());
-        domain.setId(setRandomPropertyValues(new Domain.CompositeId()));
 
-        Dto dto = PojoMapper.copy(domain, new Dto());
+        Dto dto = PojoMapper.copyTo(new Dto()).from(domain).copy();
 
         Assert.assertThat(dto.getExtraProp(), equalTo(domain.getExtraProp()));
         Assert.assertThat(dto.getEnumProp(), equalTo(domain.getEnumProp().toString()));
-
-        Assert.assertThat(dto.getFirstProp(), equalTo(domain.getId().getFirstProp()));
-        Assert.assertThat(dto.getSecondProp(), equalTo(domain.getId().getSecondProp()));
     }
 
     @Test
     public void copyDomainToDtoEnumIsNull() {
         Domain domain = setRandomPropertyValues(new Domain());
-        domain.setId(setRandomPropertyValues(new Domain.CompositeId()));
         domain.setEnumProp(null);
 
-        Dto dto = PojoMapper.copy(domain, new Dto());
+        Dto dto = PojoMapper.copyTo(new Dto()).from(domain).copy();
 
         Assert.assertThat(dto.getExtraProp(), equalTo(domain.getExtraProp()));
         Assert.assertThat(dto.getEnumProp(), nullValue());
-
-        Assert.assertThat(dto.getFirstProp(), equalTo(domain.getId().getFirstProp()));
-        Assert.assertThat(dto.getSecondProp(), equalTo(domain.getId().getSecondProp()));
-
     }
 
     @Test
@@ -55,13 +46,10 @@ public class PojoMapperTest {
         Dto dto = setRandomPropertyValues(new Dto());
         dto.setEnumProp(null);
 
-        Domain domain = PojoMapper.copy(dto, new Domain());
+        Domain domain = PojoMapper.copyTo(new Domain()).from(dto).copy();
 
         Assert.assertThat(domain.getExtraProp(), equalTo(dto.getExtraProp()));
         Assert.assertThat(domain.getEnumProp(), nullValue());
-
-        Assert.assertThat(domain.getId().getFirstProp(), equalTo(dto.getFirstProp()));
-        Assert.assertThat(domain.getId().getSecondProp(), equalTo(dto.getSecondProp()));
     }
 
     @Test
@@ -69,39 +57,40 @@ public class PojoMapperTest {
         Dto dto = setRandomPropertyValues(new Dto());
         dto.setEnumProp(Domain.Enum.SECOND.toString());
 
-        Domain domain = PojoMapper.copy(dto, new Domain());
+        Domain domain = PojoMapper.copyTo(new Domain()).from(dto).copy();
 
         Assert.assertThat(domain.getExtraProp(), equalTo(dto.getExtraProp()));
         Assert.assertThat(String.valueOf(domain.getEnumProp()), equalTo(dto.getEnumProp()));
-
-        Assert.assertThat(domain.getId().getFirstProp(), equalTo(dto.getFirstProp()));
-        Assert.assertThat(domain.getId().getSecondProp(), equalTo(dto.getSecondProp()));
     }
 
     @Test
     public void copyNullToDomain() {
-        Domain target = new Domain();
-        Domain domain = PojoMapper.copy(null, target);
+        Domain domain = PojoMapper.copyTo(new Domain()).from(null).copy();
         Assert.assertNull(domain);
     }
 
     @Test
     public void copyDomainToNull() {
-        Dto dto = PojoMapper.copy(new Domain(), null);
+        Dto dto = (Dto) PojoMapper.copyTo(null).from(new Domain()).copy();
         Assert.assertThat(dto, nullValue());
     }
 
     @Test
     public void copyMappedProperties() {
         Domain domain = setRandomPropertyValues(new Domain());
-        domain.setId(setRandomPropertyValues(new Domain.CompositeId()));
         domain.setNestedProp(setRandomPropertyValues(new Domain.NestedProp()));
 
         Map<String, String> mapper = new HashMap<>();
         mapper.put("notMatchedProp1", "notMatchedProp3");
         mapper.put("notMatchedProp4", "notMatchedProp2");
         mapper.put("nestedProp.prop1", "notMatchedProp5");
-        Dto dto = PojoMapper.copyTo(new Dto()).from(domain).mapper(mapper).copy();
+        Dto dto = PojoMapper.copyTo(new Dto()).from(domain).rewrite(rewrite).mapper("prop1", "prop2").ignore("ignorableProperty").mapper(mapper).copy();
+        
+        SomeTargetPojo resuelt = PojoMapper.copyTo(new SomeTargetPojo())
+        		.from(firstSource)
+        		.ignore("ignorableProperty")
+        		.
+        		.mapper(mapper).copy();
 
         Assert.assertThat(dto.getNotMatchedProp3(), equalTo(domain.getNotMatchedProp1()));
         Assert.assertThat(dto.getNotMatchedProp4(), equalTo(domain.getNotMatchedProp2()));
@@ -111,7 +100,6 @@ public class PojoMapperTest {
     @Test
     public void copyMappedPropertiesInverseOrder() {
         Domain domain = setRandomPropertyValues(new Domain());
-        domain.setId(setRandomPropertyValues(new Domain.CompositeId()));
         domain.setNestedProp(setRandomPropertyValues(new Domain.NestedProp()));
 
         Map<String, String> mapper = new HashMap<>();
@@ -132,7 +120,6 @@ public class PojoMapperTest {
     @Test
     public void copyMappedPropertiesMixedWithAlternateMapping() {
         Domain domain = setRandomPropertyValues(new Domain());
-        domain.setId(setRandomPropertyValues(new Domain.CompositeId()));
         domain.setNestedProp(setRandomPropertyValues(new Domain.NestedProp()));
 
         Map<String, String> mapper = new HashMap<>();
@@ -155,7 +142,6 @@ public class PojoMapperTest {
     @Test
     public void copyForceRewrite() {
         Domain domain = setRandomPropertyValues(new Domain());
-        domain.setId(setRandomPropertyValues(new Domain.CompositeId()));
 
         Map<String, String> mapper = new HashMap<>();
         mapper.put("notMatchedProp1", "notMatchedProp3");
@@ -171,7 +157,6 @@ public class PojoMapperTest {
     @Test
     public void copySkipRewrite() {
         Domain domain = setRandomPropertyValues(new Domain());
-        domain.setId(setRandomPropertyValues(new Domain.CompositeId()));
 
         Map<String, String> mapper = new HashMap<>();
         mapper.put("notMatchedProp1", "notMatchedProp3");
@@ -187,7 +172,6 @@ public class PojoMapperTest {
     @Test
     public void copySkipNulls() {
         Domain domain = setRandomPropertyValues(new Domain());
-        domain.setId(setRandomPropertyValues(new Domain.CompositeId()));
 
         domain.setExtraProp(null);
 
@@ -199,16 +183,8 @@ public class PojoMapperTest {
     }
 
     @Test
-    public void setValue() {
-        Domain domain = setRandomPropertyValues(new Domain());
-        PojoMapper.set(domain, "extraProp", "new");
-        Assert.assertThat(domain.getExtraProp(), equalTo("new"));
-    }
-
-    @Test
     public void copyRewriteToNulls() {
         Domain domain = setRandomPropertyValues(new Domain());
-        domain.setId(setRandomPropertyValues(new Domain.CompositeId()));
 
         domain.setExtraProp(null);
 
@@ -226,24 +202,6 @@ public class PojoMapperTest {
         Assert.assertThat(dto, nullValue());
     }
     
-    @Test
-    public void setReadOnlyProperty() {
-        Domain pojo = new Domain();
-        PojoMapper.set(pojo, "readOnlyProperty", new Object());
-        Assert.assertThat(pojo.getReadOnlyProperty(), nullValue());
-    }
-    
-    @Test
-    public void setIllegalAccessException() {
-        TestingIllegalAccessException pojo = new TestingIllegalAccessException();
-        PojoMapper.set(pojo, "illegalAccessException", new Object());
-    }
-    
-    @Test(expected = IllegalAccessException.class)
-    public void newInstantiationException() throws InstantiationException, IllegalAccessException {
-        PojoMapper.class.newInstance();
-    }
-    
     public static class TestingIllegalAccessException {
         public void setIllegalAccessException(Object illegalAccessException) throws IllegalAccessException {
             throw new IllegalAccessException();
@@ -252,7 +210,6 @@ public class PojoMapperTest {
 
     public static class Domain {
 
-        private CompositeId id;
         private String extraProp;
         private Enum enumProp;
         private String notMatchedProp1;
@@ -260,14 +217,6 @@ public class PojoMapperTest {
         private NestedProp nestedProp;
         private LocalDate dateDomain;
         private Object readOnlyProperty;
-
-        public CompositeId getId() {
-            return id;
-        }
-
-        public void setId(CompositeId id) {
-            this.id = id;
-        }
 
         public String getExtraProp() {
             return extraProp;
